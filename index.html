@@ -110,6 +110,22 @@
   .btn-primary:hover{background:#1ebc59;transform:translateY(-2px);}
   .btn-outline{border:1px solid rgba(255,255,255,0.6);color:#fff;}
   .btn-outline:hover{background:rgba(255,255,255,0.12);}
+  .btn-dark{background:var(--ciruela);color:#fff;border:none;cursor:pointer;font-family:'Poppins',sans-serif;}
+  .btn-dark:hover{background:var(--rosa-terracota);}
+  .btn-dark:disabled{opacity:0.6;cursor:default;}
+
+  /* ---- CONTACTO (temporal) ---- */
+  .contact-form{max-width:640px;margin:0 auto;display:flex;flex-direction:column;gap:18px;}
+  .form-row{display:flex;gap:18px;}
+  .form-row input,.contact-form textarea{
+    width:100%;padding:14px 18px;border:1px solid var(--piedra);border-radius:4px;
+    font-family:'Poppins',sans-serif;font-size:14px;background:#fff;color:var(--carbon);
+  }
+  .form-row input:focus,.contact-form textarea:focus{outline:none;border-color:var(--rosa-terracota);}
+  .contact-form textarea{resize:vertical;}
+  .form-status{font-size:13px;color:var(--rosa-terracota);min-height:18px;margin:0;}
+  .form-status.ok{color:#2f8f4e;}
+  @media(max-width:860px){.form-row{flex-direction:column;}}
   .slide-dots{
     position:absolute;bottom:36px;left:50%;transform:translateX(-50%);
     z-index:2;display:flex;gap:10px;
@@ -358,6 +374,31 @@
   </div>
 </section>
 
+<!-- ===== SECCIÓN TEMPORAL — quitar cuando ya no se necesite el correo de respaldo ===== -->
+<section class="section section-alt" id="contacto">
+  <div class="container">
+    <div class="section-head">
+      <span class="eyebrow">Escríbenos</span>
+      <h2>¿Prefieres dejarnos un mensaje?</h2>
+      <p>Contesta este formulario y te respondemos por correo a la brevedad.</p>
+    </div>
+    <form class="contact-form" id="contactForm">
+      <div class="form-row">
+        <input type="text" name="Nombre" placeholder="Tu nombre" required>
+        <input type="tel" name="Teléfono" placeholder="Tu teléfono (opcional)">
+      </div>
+      <textarea name="Mensaje" placeholder="Cuéntanos qué necesitas..." rows="4" required></textarea>
+      <input type="text" name="_honey" style="display:none" tabindex="-1" autocomplete="off">
+      <input type="hidden" name="_subject" value="Nuevo mensaje desde el sitio de Virago Beauty Space">
+      <input type="hidden" name="_captcha" value="false">
+      <input type="hidden" name="_template" value="box">
+      <button type="submit" class="btn btn-dark" id="contactSubmit">Enviar mensaje</button>
+      <p class="form-status" id="formStatus"></p>
+    </form>
+  </div>
+</section>
+<!-- ===== FIN SECCIÓN TEMPORAL ===== -->
+
 <footer>
   <div class="container">
     <div class="footer-top">
@@ -415,6 +456,39 @@
   }
   dots.forEach(d => d.addEventListener('click', () => showSlide(parseInt(d.dataset.i))));
   setInterval(() => showSlide((current + 1) % slides.length), 5500);
+
+  // Formulario de contacto temporal (envía por correo vía FormSubmit, sin backend propio)
+  const contactForm = document.getElementById('contactForm');
+  if (contactForm) {
+    contactForm.addEventListener('submit', async (e) => {
+      e.preventDefault();
+      const btn = document.getElementById('contactSubmit');
+      const status = document.getElementById('formStatus');
+      btn.disabled = true;
+      btn.textContent = 'Enviando...';
+      status.textContent = '';
+      status.classList.remove('ok');
+      try {
+        const res = await fetch('https://formsubmit.co/ajax/gntdment@gmail.com', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json', 'Accept': 'application/json' },
+          body: JSON.stringify(Object.fromEntries(new FormData(contactForm))),
+        });
+        if (res.ok) {
+          status.textContent = '¡Gracias! Recibimos tu mensaje y te responderemos pronto.';
+          status.classList.add('ok');
+          contactForm.reset();
+        } else {
+          throw new Error('bad response');
+        }
+      } catch (err) {
+        status.textContent = 'No se pudo enviar. Escríbenos mejor por WhatsApp mientras lo revisamos.';
+      } finally {
+        btn.disabled = false;
+        btn.textContent = 'Enviar mensaje';
+      }
+    });
+  }
 </script>
 
 </body>
